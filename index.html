@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Budapest Silent Book Club Quote Card</title>
+  <!-- Include html2canvas from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+
+
+  <style>
+    /* Basic reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /*
+      Brand-inspired colors:
+      - Dark navy: #2D3B41
+      - Cream: #F0EBD8
+      - Slightly lighter navy for gradient: #3B4A50
+    */
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      background-color: #2D3B41;
+      padding: 20px;
+      color: #F0EBD8;
+    }
+
+    form {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      border: 1px solid #445357;
+      border-radius: 4px;
+      outline: none;
+      background-color: #3B4A50;
+      color: #F0EBD8;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #F0EBD8;
+      color: #2D3B41;
+      font-weight: bold;
+    }
+
+    /* 
+      Responsive quote card:
+      - aspect-ratio: 4:5 for a portrait orientation typical on Instagram
+      - gradient background for subtle style
+      - clamp-based typography for fluid scaling
+    */
+    #quoteCard {
+      /* The card will keep a 4:5 ratio while expanding up to the parent’s max width. */
+      aspect-ratio: 4 / 5; 
+      max-width: 400px; 
+      background: linear-gradient(135deg, #2D3B41 0%, #3B4A50 100%);
+      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      display: none; /* hidden until generated */
+      position: relative;
+      margin: 0 auto;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* An inner content wrapper that uses flex to center items vertically/horizontally */
+    #quoteCardContent {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    /* Large Quote Text:
+       Use clamp to keep text size flexible across screen sizes 
+       (min 1rem, max 2rem, scale around 5vw as mid-range).
+    */
+    #displayQuote {
+      font-size: clamp(1rem, 5vw, 2rem);
+      font-weight: bold;
+      line-height: 1.4;
+      color: #F0EBD8;
+      margin-bottom: 20px;
+      word-wrap: break-word;
+    }
+
+    /* Title and Author styling */
+    #displayTitle,
+    #displayAuthor {
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      color: #F0EBD8;
+      margin-bottom: 5px;
+      word-wrap: break-word;
+    }
+
+    /* Watermark in the bottom-right corner; smaller font. */
+    #watermark {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 0.7rem;
+      color: #F0EBD8;
+      font-style: italic;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <form>
+    <label for="quoteInput">Quote</label>
+    <textarea id="quoteInput" rows="3" placeholder="Enter a quote"></textarea>
+
+    <label for="titleInput">Book Title</label>
+    <input type="text" id="titleInput" placeholder="Enter Book Title" />
+
+    <label for="authorInput">Author</label>
+    <input type="text" id="authorInput" placeholder="Enter Author Name" />
+
+    <div class="buttons">
+      <button type="button" onclick="generateQuoteCard()">Generate</button>
+      <button type="button" onclick="downloadQuoteCard()">Download PNG</button>
+    </div>
+  </form>
+
+  <div id="quoteCard">
+    <div id="quoteCardContent">
+      <div id="displayQuote"></div>
+      <div id="displayTitle"></div>
+      <div id="displayAuthor"></div>
+    </div>
+    <div id="watermark">Silent Book Club Budapest</div>
+  </div>
+
+  <script>
+    function generateQuoteCard() {
+      const quote = document.getElementById('quoteInput').value.trim();
+      const title = document.getElementById('titleInput').value.trim();
+      const author = document.getElementById('authorInput').value.trim();
+
+      if (!quote) {
+        alert("Please enter at least a quote.");
+        return;
+      }
+
+      // Insert the text into the card
+      document.getElementById('displayQuote').textContent = `“${quote}”`;
+      document.getElementById('displayTitle').textContent = title || "";
+      document.getElementById('displayAuthor').textContent = author || "";
+
+      // Make the card visible
+      document.getElementById('quoteCard').style.display = "block";
+    }
+
+    async function downloadQuoteCard() {
+  const quoteCard = document.getElementById('quoteCard');
+  if (quoteCard.style.display === "none") {
+    alert("Please generate the quote card first.");
+    return;
+  }
+
+  try {
+    const scale = 3; // Increase scale for higher resolution
+    const canvas = await html2canvas(quoteCard, {
+      useCORS: true, // Ensures external resources are loaded properly
+      backgroundColor: null, // Keeps background transparent
+      scale: scale, // Multiplies the rendering resolution
+    });
+
+    // Create a Blob from the canvas and initiate download
+    canvas.toBlob(
+      (blob) => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "quote-card.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      },
+      "image/png",
+      1.0 // High-quality PNG
+    );
+  } catch (err) {
+    console.error("Error generating image:", err);
+    alert("Something went wrong generating the image. Check console for details.");
+  }
+}
+
+
+  </script>
+
+</body>
+</html>
+
+
+
+
+The Art of Gathering: How We Meet and Why It Matters
+Priya Parker
+https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1513028173i/37424706.jpg
+Barack Obama's aunt once told him, 'If everyone is family, no one is family.' It is blood that makes a tribe, a border that makes a nation. The same is true of gatherings. So here is a corollary to his aunt's saying: If everyone is invited, no one is invited—in the sense of being truly held by the group. By closing the door, you create the room.
