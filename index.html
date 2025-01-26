@@ -3,25 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>Budapest Silent Book Club Quote Card</title>
-  <!-- Include html2canvas from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
 
-
   <style>
-    /* Basic reset */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: "Helvetica Neue", Arial, sans-serif;
     }
-
-    /*
-      Brand-inspired colors:
-      - Dark navy: #2D3B41
-      - Cream: #F0EBD8
-      - Slightly lighter navy for gradient: #3B4A50
-    */
 
     body {
       display: flex;
@@ -48,7 +38,8 @@
     }
 
     input[type="text"],
-    textarea {
+    textarea,
+    select {
       width: 100%;
       padding: 8px;
       margin-bottom: 15px;
@@ -81,27 +72,19 @@
       font-weight: bold;
     }
 
-    /* 
-      Responsive quote card:
-      - aspect-ratio: 4:5 for a portrait orientation typical on Instagram
-      - gradient background for subtle style
-      - clamp-based typography for fluid scaling
-    */
     #quoteCard {
-      /* The card will keep a 4:5 ratio while expanding up to the parent’s max width. */
-      aspect-ratio: 4 / 5; 
-      max-width: 400px; 
+      aspect-ratio: 4 / 5;
+      max-width: 400px;
       background: linear-gradient(135deg, #2D3B41 0%, #3B4A50 100%);
       border-radius: 8px;
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-      display: none; /* hidden until generated */
+      display: none;
       position: relative;
       margin: 0 auto;
       overflow: hidden;
       padding: 20px;
     }
 
-    /* An inner content wrapper that uses flex to center items vertically/horizontally */
     #quoteCardContent {
       width: 100%;
       height: 100%;
@@ -114,12 +97,7 @@
       box-sizing: border-box;
     }
 
-    /* Large Quote Text:
-       Use clamp to keep text size flexible across screen sizes 
-       (min 1rem, max 2rem, scale around 5vw as mid-range).
-    */
     #displayQuote {
-      font-size: clamp(1rem, 5vw, 2rem);
       font-weight: bold;
       line-height: 1.4;
       color: #F0EBD8;
@@ -127,7 +105,6 @@
       word-wrap: break-word;
     }
 
-    /* Title and Author styling */
     #displayTitle,
     #displayAuthor {
       font-size: clamp(0.9rem, 2vw, 1.1rem);
@@ -136,7 +113,6 @@
       word-wrap: break-word;
     }
 
-    /* Watermark in the bottom-right corner; smaller font. */
     #watermark {
       position: absolute;
       bottom: 10px;
@@ -146,13 +122,26 @@
       font-style: italic;
       opacity: 0.8;
     }
+
+    .font-controls {
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
-
   <form>
     <label for="quoteInput">Quote</label>
     <textarea id="quoteInput" rows="3" placeholder="Enter a quote"></textarea>
+
+    <div class="font-controls">
+      <label for="fontSize">Font Size</label>
+      <select id="fontSize">
+        <option value="auto">Auto (Adjusts to text length)</option>
+        <option value="small">Small</option>
+        <option value="normal">Normal</option>
+        <option value="large">Large</option>
+      </select>
+    </div>
 
     <label for="titleInput">Book Title</label>
     <input type="text" id="titleInput" placeholder="Enter Book Title" />
@@ -176,61 +165,87 @@
   </div>
 
   <script>
+    function adjustFontSize(text, fontSize) {
+      const displayQuote = document.getElementById('displayQuote');
+      const baseSize = 2; // Base size in rem
+      
+      if (fontSize === 'auto') {
+        const length = text.length;
+        if (length > 300) {
+          displayQuote.style.fontSize = '1rem';
+        } else if (length > 200) {
+          displayQuote.style.fontSize = '1.3rem';
+        } else if (length > 100) {
+          displayQuote.style.fontSize = '1.6rem';
+        } else {
+          displayQuote.style.fontSize = '2rem';
+        }
+      } else {
+        switch(fontSize) {
+          case 'small':
+            displayQuote.style.fontSize = '1.2rem';
+            break;
+          case 'normal':
+            displayQuote.style.fontSize = '2rem';
+            break;
+          case 'large':
+            displayQuote.style.fontSize = '2.8rem';
+            break;
+        }
+      }
+    }
+
     function generateQuoteCard() {
       const quote = document.getElementById('quoteInput').value.trim();
       const title = document.getElementById('titleInput').value.trim();
       const author = document.getElementById('authorInput').value.trim();
+      const fontSize = document.getElementById('fontSize').value;
 
       if (!quote) {
         alert("Please enter at least a quote.");
         return;
       }
 
-      // Insert the text into the card
-      document.getElementById('displayQuote').textContent = `“${quote}”`;
+      document.getElementById('displayQuote').textContent = `"${quote}"`;
       document.getElementById('displayTitle').textContent = title || "";
       document.getElementById('displayAuthor').textContent = author || "";
-
-      // Make the card visible
+      
+      adjustFontSize(quote, fontSize);
       document.getElementById('quoteCard').style.display = "block";
     }
 
     async function downloadQuoteCard() {
-  const quoteCard = document.getElementById('quoteCard');
-  if (quoteCard.style.display === "none") {
-    alert("Please generate the quote card first.");
-    return;
-  }
+      const quoteCard = document.getElementById('quoteCard');
+      if (quoteCard.style.display === "none") {
+        alert("Please generate the quote card first.");
+        return;
+      }
 
-  try {
-    const scale = 3; // Increase scale for higher resolution
-    const canvas = await html2canvas(quoteCard, {
-      useCORS: true, // Ensures external resources are loaded properly
-      backgroundColor: null, // Keeps background transparent
-      scale: scale, // Multiplies the rendering resolution
-    });
+      try {
+        const scale = 3;
+        const canvas = await html2canvas(quoteCard, {
+          useCORS: true,
+          backgroundColor: null,
+          scale: scale,
+        });
 
-    // Create a Blob from the canvas and initiate download
-    canvas.toBlob(
-      (blob) => {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "quote-card.png";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      },
-      "image/png",
-      1.0 // High-quality PNG
-    );
-  } catch (err) {
-    console.error("Error generating image:", err);
-    alert("Something went wrong generating the image. Check console for details.");
-  }
-}
-
-
+        canvas.toBlob(
+          (blob) => {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "quote-card.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          },
+          "image/png",
+          1.0
+        );
+      } catch (err) {
+        console.error("Error generating image:", err);
+        alert("Something went wrong generating the image. Check console for details.");
+      }
+    }
   </script>
-
 </body>
 </html>
